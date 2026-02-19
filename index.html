@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=1024">
-<title>ASUS RT-N12 | Wireless Router</title>
+<title>ASUS RT-N12 | Wireless Router Simulator</title>
 <style>
     /* --- CORE VARIABLES --- */
     :root {
@@ -31,7 +31,7 @@
         overflow: hidden;
     }
 
-    /* --- LOGIN OVERLAY (Slide 21) --- */
+    /* --- LOGIN OVERLAY --- */
     #login-overlay {
         position: fixed; top: 0; left: 0; width: 100%; height: 100%;
         background: rgba(0,0,0,0.8);
@@ -48,7 +48,7 @@
     .login-btns { text-align: right; margin-top: 10px; }
     .login-btns button { padding: 5px 15px; cursor: pointer; }
 
-    /* --- HEADER (Slide 22) --- */
+    /* --- HEADER --- */
     #header {
         height: 60px; background: linear-gradient(to bottom, #444, #111);
         display: flex; justify-content: space-between; align-items: center;
@@ -67,7 +67,7 @@
     /* --- LAYOUT --- */
     #main { display: flex; height: 100%; }
     
-    /* SIDEBAR (Slide 22) */
+    /* SIDEBAR */
     #sidebar {
         width: 200px; background: var(--bg-sidebar); border-right: 1px solid #000;
         overflow-y: auto; flex-shrink: 0;
@@ -117,7 +117,7 @@
         color: #fff; padding: 6px 25px; cursor: pointer; font-weight: bold; border-radius: 3px;
     }
 
-    /* --- NETWORK MAP SPECIFIC (Slide 22) --- */
+    /* --- NETWORK MAP SPECIFIC --- */
     .map-wrapper { display: flex; height: 100%; gap: 15px; }
     .map-graphic { flex: 2; position: relative; display: flex; justify-content: center; align-items: center; }
     .map-status { flex: 1; background: #2e363e; border: 1px solid #555; height: 350px; }
@@ -138,7 +138,7 @@
     .line-right { right: 25%; }
     .conn-line.active { background: var(--blue); }
 
-    /* --- TOGGLE SWITCH (Slide 30) --- */
+    /* --- TOGGLE SWITCH --- */
     .switch { position: relative; display: inline-block; width: 40px; height: 20px; vertical-align: middle; }
     .switch input { opacity: 0; width: 0; height: 0; }
     .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 20px; }
@@ -212,7 +212,7 @@
     <!-- CONTENT -->
     <div id="content">
 
-        <!-- 1. NETWORK MAP (Slide 22) -->
+        <!-- 1. NETWORK MAP -->
         <div id="page-map" class="page active">
             <div class="map-wrapper">
                 <div class="map-graphic">
@@ -246,7 +246,7 @@
             </div>
         </div>
 
-        <!-- 2. GUEST NETWORK (Slide 27-29) -->
+        <!-- 2. GUEST NETWORK -->
         <div id="page-guest" class="page">
             <h2 style="border-bottom:1px solid #555; padding-bottom:10px;">Guest Network</h2>
             <div style="background:#2e363e; padding:20px; border-radius:5px;">
@@ -275,7 +275,7 @@
             </div>
         </div>
 
-        <!-- 3. TRAFFIC MANAGER / QoS (Slide 30-31) -->
+        <!-- 3. TRAFFIC MANAGER / QoS -->
         <div id="page-qos" class="page">
             <div class="tabs">
                 <div class="tab active">QoS</div>
@@ -301,7 +301,7 @@
             <div class="btn-wrap"><button class="btn-apply" onclick="save('QoS')">Save</button></div>
         </div>
 
-        <!-- 4. WIRELESS (Slide 23, 26, 39) -->
+        <!-- 4. WIRELESS -->
         <div id="page-wireless" class="page">
             <div class="tabs">
                 <div class="tab active" onclick="tabSub('wl', 'gen', this)">General</div>
@@ -325,7 +325,7 @@
                 <div class="btn-wrap"><button class="btn-apply" onclick="save('Wireless General')">Apply</button></div>
             </div>
 
-            <!-- Wireless MAC Filter (Slide 39) -->
+            <!-- Wireless MAC Filter -->
             <div id="wl-mac" style="display:none;">
                 <div style="background:#555; padding:5px; margin-bottom:10px;">Wireless MAC filter allows you to control packets from devices with specified MAC address.</div>
                 <table class="form-table">
@@ -337,27 +337,41 @@
             </div>
         </div>
 
-        <!-- 5. LAN (Slide 32-33) -->
+        <!-- 5. LAN (UPDATED 1:1) -->
         <div id="page-lan" class="page">
             <div class="tabs">
-                <div class="tab">LAN IP</div>
-                <div class="tab active">DHCP Server</div>
+                <div class="tab active" onclick="tabSub('lan', 'ip', this)">LAN IP</div>
+                <div class="tab" onclick="tabSub('lan', 'dhcp', this)">DHCP Server</div>
                 <div class="tab">Route</div>
                 <div class="tab">IPTV</div>
             </div>
-            <table class="form-table">
-                <tr><th>Enable the DHCP Server</th><td><input type="radio" name="dhcp" checked> Yes <input type="radio" name="dhcp"> No</td></tr>
-                <tr><th>RT-N12 Domain Name</th><td><input type="text"></td></tr>
-                <tr><th>IP Pool Starting Address</th><td><input type="text" id="pool_start" value="192.168.1.2"></td></tr>
-                <tr><th>IP Pool Ending Address</th><td><input type="text" id="pool_end" value="192.168.1.254"></td></tr>
-                <tr><th>Lease time</th><td><input type="text" value="86400"></td></tr>
-                <tr><th>Default Gateway</th><td><input type="text"></td></tr>
-                <tr><th>DNS Server</th><td><input type="text"></td></tr>
-            </table>
-            <div class="btn-wrap"><button class="btn-apply" onclick="save('LAN DHCP')">Apply</button></div>
+
+            <!-- LAN IP TAB (Active by default) -->
+            <div id="lan-ip">
+                <table class="form-table">
+                    <tr><th>Device Name</th><td><input type="text" value="RT-N12"></td></tr>
+                    <tr><th>IP Address</th><td><input type="text" id="lan_ip_addr" value="192.168.1.1"></td></tr>
+                    <tr><th>Subnet Mask</th><td><input type="text" id="lan_netmask" value="255.255.255.0"></td></tr>
+                </table>
+                <div class="btn-wrap"><button class="btn-apply" onclick="save('LAN IP')">Apply</button></div>
+            </div>
+
+            <!-- DHCP SERVER TAB -->
+            <div id="lan-dhcp" style="display:none;">
+                <table class="form-table">
+                    <tr><th>Enable the DHCP Server</th><td><input type="radio" name="dhcp" checked> Yes <input type="radio" name="dhcp"> No</td></tr>
+                    <tr><th>RT-N12 Domain Name</th><td><input type="text"></td></tr>
+                    <tr><th>IP Pool Starting Address</th><td><input type="text" id="pool_start" value="192.168.1.2"></td></tr>
+                    <tr><th>IP Pool Ending Address</th><td><input type="text" id="pool_end" value="192.168.1.254"></td></tr>
+                    <tr><th>Lease time</th><td><input type="text" value="86400"></td></tr>
+                    <tr><th>Default Gateway</th><td><input type="text"></td></tr>
+                    <tr><th>DNS Server</th><td><input type="text"></td></tr>
+                </table>
+                <div class="btn-wrap"><button class="btn-apply" onclick="save('LAN DHCP')">Apply</button></div>
+            </div>
         </div>
 
-        <!-- 6. IPv6 (Slide 34) - ADDED -->
+        <!-- 6. IPv6 -->
         <div id="page-ipv6" class="page">
             <div class="tabs"><div class="tab active">IPv6</div></div>
             <table class="form-table">
@@ -378,7 +392,7 @@
             <div class="btn-wrap"><button class="btn-apply" onclick="save('IPv6 Config')">Apply</button></div>
         </div>
 
-        <!-- 7. FIREWALL (Slide 35-38) -->
+        <!-- 7. FIREWALL -->
         <div id="page-firewall" class="page">
             <div class="tabs">
                 <div class="tab active" onclick="tabSub('fw', 'gen', this)">General</div>
@@ -398,7 +412,7 @@
                 <div class="btn-wrap"><button class="btn-apply" onclick="save('Firewall General')">Apply</button></div>
             </div>
 
-            <!-- URL Filter (Slide 36) -->
+            <!-- URL Filter -->
             <div id="fw-url" style="display:none;">
                 <p style="padding:10px;">Keywords for the sites you want to block (e.g., "www.abc.com").</p>
                 <table class="form-table">
@@ -412,7 +426,7 @@
                 <div class="btn-wrap"><button class="btn-apply" onclick="save('URL Filter')">Apply</button></div>
             </div>
 
-            <!-- Keyword Filter (Slide 37-38) -->
+            <!-- Keyword Filter -->
             <div id="fw-key" style="display:none;">
                 <p style="padding:10px;">Keyword filter allows you to block access to webpages containing specified keywords.</p>
                 <table class="form-table">
@@ -427,7 +441,7 @@
             </div>
         </div>
 
-        <!-- 8. NETWORK TOOLS (Slide 40-42) - ADDED -->
+        <!-- 8. NETWORK TOOLS -->
         <div id="page-tools" class="page">
             <div class="tabs">
                 <div class="tab active">Network Analysis</div>
@@ -499,12 +513,13 @@
         el.classList.add('active');
 
         // Toggle content
-        document.getElementById(prefix+'-gen').style.display = 'none';
-        if(document.getElementById(prefix+'-mac')) document.getElementById(prefix+'-mac').style.display = 'none';
-        if(document.getElementById(prefix+'-url')) document.getElementById(prefix+'-url').style.display = 'none';
-        if(document.getElementById(prefix+'-key')) document.getElementById(prefix+'-key').style.display = 'none';
+        // Hide all divs starting with prefix-
+        const siblings = parent.parentElement.querySelectorAll('div[id^="'+prefix+'-"]');
+        siblings.forEach(div => div.style.display = 'none');
 
-        document.getElementById(prefix+'-'+id).style.display = 'block';
+        // Show specific one
+        const target = document.getElementById(prefix+'-'+id);
+        if(target) target.style.display = 'block';
     }
 
     // --- MAP LOGIC ---
@@ -592,13 +607,18 @@
             document.getElementById('head-ssid').innerText = state.ssid;
         }
 
+        // UPDATE LAN IP STATE
+        if(name === 'LAN IP') {
+            state.lanIp = document.getElementById('lan_ip_addr').value;
+        }
+
         const int = setInterval(() => {
             p += 20;
             pct.innerText = p + "%";
             if(p >= 100) {
                 clearInterval(int);
                 document.getElementById('loader').style.display = 'none';
-                if(name.includes('Wireless')) mapSelect('router');
+                if(name.includes('Wireless') || name === 'LAN IP') mapSelect('router');
                 alert(name + " Configured Successfully!");
             }
         }, 200);
