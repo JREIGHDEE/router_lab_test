@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ASUS RT-N12 Simulator</title>
+<style>
+    body { font-family: Arial, sans-serif; background-color: #2E3338; margin: 0; color: #fff; }
+    
+    /* Login Screen Styles */
+    #login-screen {
+        display: flex; justify-content: center; align-items: center; height: 100vh;
+        background: radial-gradient(circle, #455660 0%, #1a1f24 100%);
+    }
+    .login-box {
+        background: #fff; color: #333; padding: 30px; border-radius: 5px; box-shadow: 0 0 20px #000; text-align: center;
+    }
+    .login-box input { display: block; margin: 10px auto; padding: 8px; width: 200px; }
+    .login-box button { padding: 8px 20px; background: #0088cc; color: white; border: none; cursor: pointer; }
+
+    /* Main Interface Styles */
+    #main-interface { display: none; height: 100vh; display: flex; flex-direction: column; }
+    .header { background: #181d21; padding: 15px; border-bottom: 2px solid #00AAFF; display: flex; justify-content: space-between; }
+    .container { display: flex; flex: 1; }
+    
+    /* Sidebar */
+    .sidebar { width: 220px; background: #242a30; border-right: 1px solid #444; padding-top: 20px; }
+    .menu-category { color: #00AAFF; font-weight: bold; padding: 10px 20px; text-transform: uppercase; font-size: 12px; }
+    .menu-item {
+        padding: 10px 20px; cursor: pointer; border-left: 3px solid transparent; transition: 0.2s; font-size: 14px;
+    }
+    .menu-item:hover, .menu-item.active { background: #353f48; border-left-color: #00AAFF; }
+
+    /* Content Area */
+    .content { flex: 1; padding: 40px; background: #2E3338; overflow-y: auto; }
+    .panel { background: #3b454e; padding: 20px; border-radius: 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.3); max-width: 800px; }
+    
+    h2 { margin-top: 0; border-bottom: 1px solid #555; padding-bottom: 10px; }
+    .form-group { margin-bottom: 15px; display: flex; align-items: center; }
+    .form-group label { width: 200px; font-weight: bold; }
+    input[type="text"], input[type="password"], select {
+        padding: 5px; width: 250px; background: #eee; border: 1px solid #ccc;
+    }
+    .btn-apply {
+        background: linear-gradient(to bottom, #00AAFF, #0088cc);
+        color: white; padding: 10px 30px; border: none; border-radius: 3px; cursor: pointer; font-weight: bold; float: right;
+    }
+    .btn-apply:hover { background: #0088cc; }
+
+    /* Network Map Specifics */
+    .map-icons { display: flex; justify-content: center; gap: 50px; margin: 50px 0; }
+    .icon-box { text-align: center; }
+    .circle {
+        width: 80px; height: 80px; background: #444; border-radius: 50%; display: flex;
+        align-items: center; justify-content: center; border: 2px solid #666; font-size: 24px; margin: 0 auto 10px;
+    }
+    .status-panel { background: #222; border: 1px solid #555; padding: 15px; margin-top: 20px; width: 300px; margin-left: auto; margin-right: auto;}
+
+    .hidden { display: none !important; }
+</style>
+</head>
+<body>
+
+<!-- Login Screen (Slide 21) -->
+<div id="login-screen">
+    <div class="login-box">
+        <h3>ASUS RT-N12</h3>
+        <p>Windows Security</p>
+        <p style="font-size: 12px; color: #666;">The server 192.168.1.1 requires a username and password.</p>
+        <input type="text" id="username" placeholder="User name (admin)">
+        <input type="password" id="password" placeholder="Password (networkadmin)">
+        <button onclick="attemptLogin()">OK</button>
+        <p id="login-error" style="color: red; display: none; font-size: 12px;">Invalid credentials. See Slide 21.</p>
+    </div>
+</div>
+
+<!-- Main Router Interface -->
+<div id="main-interface" class="hidden">
+    <div class="header">
+        <div style="font-size: 20px; font-weight: bold;">ASUS <span style="font-weight: normal; font-size: 14px;">RT-N12</span></div>
+        <div>Firmware: 3.0.0.4.380</div>
+        <button onclick="logout()" style="background:none; border:1px solid #555; color:#aaa; cursor:pointer;">Logout</button>
+    </div>
+
+    <div class="container">
+        <!-- Sidebar Navigation (Slide 22) -->
+        <div class="sidebar">
+            <div class="menu-category">General</div>
+            <div class="menu-item active" onclick="navigate('map', this)">Network Map</div>
+            <div class="menu-item" onclick="navigate('guest', this)">Guest Network</div>
+            <div class="menu-item" onclick="navigate('qos', this)">Traffic Manager</div>
+            <div class="menu-item" onclick="navigate('parental', this)">Parental Controls</div>
+            
+            <div class="menu-category">Advanced Settings</div>
+            <div class="menu-item" onclick="navigate('wireless', this)">Wireless</div>
+            <div class="menu-item" onclick="navigate('lan', this)">LAN</div>
+            <div class="menu-item" onclick="navigate('wan', this)">WAN</div>
+            <div class="menu-item" onclick="navigate('ipv6', this)">IPv6</div>
+            <div class="menu-item" onclick="navigate('firewall', this)">Firewall</div>
+            <div class="menu-item" onclick="navigate('admin', this)">Administration</div>
+        </div>
+
+        <!-- Content Area -->
+        <div class="content">
+            
+            <!-- Network Map View (Slide 22) -->
+            <div id="page-map" class="page">
+                <h2>Network Map</h2>
+                <div class="map-icons">
+                    <div class="icon-box">
+                        <div class="circle" style="border-color: #00AAFF;">🌐</div>
+                        <div>Internet</div>
+                        <div style="color: #00AAFF;">Connected</div>
+                    </div>
+                    <div class="icon-box">
+                        <div class="circle" style="background: #00AAFF; color: white;">Rx</div>
+                        <div>RT-N12</div>
+                    </div>
+                    <div class="icon-box">
+                        <div class="circle">💻</div>
+                        <div>Clients: 1</div>
+                    </div>
+                </div>
+
+                <div class="status-panel">
+                    <h4 style="margin-top:0; color:#00AAFF;">System Status</h4>
+                    <div class="form-group">
+                        <label style="width:100px;">SSID:</label>
+                        <span id="disp-ssid">ASUS</span>
+                    </div>
+                    <div class="form-group">
+                        <label style="width:100px;">Auth Method:</label>
+                        <span>WPA2-Personal</span>
+                    </div>
+                    <div class="form-group">
+                        <label style="width:100px;">Encryption:</label>
+                        <span>AES</span>
+                    </div>
+                    <div class="form-group">
+                        <label style="width:100px;">LAN IP:</label>
+                        <span>192.168.1.1</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Wireless Settings (Slides 23, 25, 26) -->
+            <div id="page-wireless" class="page hidden">
+                <div class="panel">
+                    <h2>Wireless - General</h2>
+                    <div class="form-group">
+                        <label>SSID (Network Name)</label>
+                        <input type="text" id="wifi-ssid" value="ASUS">
+                    </div>
+                    <div class="form-group">
+                        <label>Hide SSID</label>
+                        <select><option>No</option><option>Yes</option></select>
+                    </div>
+                    <div class="form-group">
+                        <label>Wireless Mode</label>
+                        <select><option>Auto</option><option>N Only</option><option>Legacy</option></select>
+                    </div>
+                    <hr style="border-color: #555;">
+                    <div class="form-group">
+                        <label>Authentication Method</label>
+                        <select id="wifi-auth">
+                            <option>Open System</option>
+                            <option selected>WPA2-Personal</option>
+                            <option>WPA-Auto-Personal</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>WPA Encryption</label>
+                        <select><option>AES</option><option>TKIP</option></select>
+                    </div>
+                    <div class="form-group">
+                        <label>WPA Pre-Shared Key</label>
+                        <input type="password" id="wifi-key" value="12345678">
+                    </div>
+                    <div style="overflow: hidden;">
+                        <button class="btn-apply" onclick="saveSettings('Wireless')">Apply</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- LAN Settings (Slide 32-33) -->
+            <div id="page-lan" class="page hidden">
+                <div class="panel">
+                    <h2>LAN - DHCP Server</h2>
+                    <div class="form-group">
+                        <label>Enable DHCP Server</label>
+                        <select id="dhcp-enable">
+                            <option value="Yes">Yes</option>
+                            <option value="No">No</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>RT-N12 Domain Name</label>
+                        <input type="text" value="">
+                    </div>
+                    <div class="form-group">
+                        <label>IP Pool Starting Address</label>
+                        <input type="text" value="192.168.1.2">
+                    </div>
+                    <div class="form-group">
+                        <label>IP Pool Ending Address</label>
+                        <input type="text" value="192.168.1.254">
+                    </div>
+                    <div class="form-group">
+                        <label>Lease Time</label>
+                        <input type="text" value="86400">
+                    </div>
+                    <div style="overflow: hidden;">
+                        <button class="btn-apply" onclick="saveSettings('LAN DHCP')">Apply</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Traffic Manager (Slide 30) -->
+            <div id="page-qos" class="page hidden">
+                <div class="panel">
+                    <h2>Traffic Manager - QoS</h2>
+                    <p>The Quality of Service (QoS) feature allows you to set bandwidth priority.</p>
+                    <div class="form-group">
+                        <label>Smart QoS</label>
+                        <div style="display:inline-block; background:#222; border-radius:15px; padding:2px; border:1px solid #555;">
+                            <button onclick="toggleQoS(true)" style="background:#00AAFF; color:white; border:none; border-radius:10px; padding:5px 15px; cursor:pointer;">ON</button>
+                            <button onclick="toggleQoS(false)" style="background:transparent; color:#888; border:none; padding:5px 15px; cursor:pointer;">OFF</button>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Upload Bandwidth</label>
+                        <input type="text" placeholder="Mb/s">
+                    </div>
+                    <div class="form-group">
+                        <label>Download Bandwidth</label>
+                        <input type="text" placeholder="Mb/s">
+                    </div>
+                    <div style="overflow: hidden;">
+                        <button class="btn-apply" onclick="saveSettings('QoS')">Save</button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Guest Network (Slide 27-29) -->
+             <div id="page-guest" class="page hidden">
+                <div class="panel">
+                    <h2>Guest Network</h2>
+                    <div class="form-group">
+                        <label>Enable Guest Network</label>
+                        <button onclick="alert('Guest Network Enabled')" style="background:#00AAFF; color:white; border:none; padding:5px 10px; cursor:pointer;">Enable</button>
+                    </div>
+                     <div class="form-group">
+                        <label>Network Name (SSID)</label>
+                        <input type="text" value="ASUS_Guest">
+                    </div>
+                    <div class="form-group">
+                        <label>Access Intranet</label>
+                        <select><option>Disable</option><option>Enable</option></select>
+                    </div>
+                    <div style="overflow: hidden;">
+                        <button class="btn-apply" onclick="saveSettings('Guest Network')">Apply</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Placeholders for other pages -->
+            <div id="page-parental" class="page hidden"><h2>Parental Controls</h2><p>Feature available in full firmware.</p></div>
+            <div id="page-wan" class="page hidden"><h2>WAN</h2><p>Internet Connection Settings.</p></div>
+            <div id="page-ipv6" class="page hidden"><h2>IPv6</h2><p>IPv6 Configuration.</p></div>
+            <div id="page-firewall" class="page hidden"><h2>Firewall</h2><p>URL Filtering, Keyword Filtering, DoS protection.</p></div>
+            <div id="page-admin" class="page hidden"><h2>Administration</h2><p>System mode, Firmware upgrade, Restore/Save/Upload settings.</p></div>
+
+        </div>
+    </div>
+</div>
+
+<script>
+    // Login Logic (Slide 21)
+    function attemptLogin() {
+        const u = document.getElementById('username').value;
+        const p = document.getElementById('password').value;
+        // Slide 21 credentials
+        if(u === 'admin' && p === 'networkadmin') {
+            document.getElementById('login-screen').style.display = 'none';
+            document.getElementById('main-interface').style.display = 'flex';
+            document.getElementById('main-interface').classList.remove('hidden');
+        } else {
+            document.getElementById('login-error').style.display = 'block';
+        }
+    }
+
+    function logout() {
+        location.reload();
+    }
+
+    // Navigation Logic
+    function navigate(pageId, element) {
+        // Hide all pages
+        const pages = document.querySelectorAll('.page');
+        pages.forEach(p => p.classList.add('hidden'));
+
+        // Show selected page
+        document.getElementById('page-' + pageId).classList.remove('hidden');
+
+        // Update active menu item
+        const menuItems = document.querySelectorAll('.menu-item');
+        menuItems.forEach(m => m.classList.remove('active'));
+        element.classList.add('active');
+    }
+
+    // Simulation Logic
+    function saveSettings(section) {
+        // Update Network Map display if Wireless settings changed
+        if(section === 'Wireless') {
+            const newSSID = document.getElementById('wifi-ssid').value;
+            document.getElementById('disp-ssid').innerText = newSSID;
+        }
+        
+        // Processing simulation
+        alert('Please wait, applying settings...');
+        setTimeout(() => {
+            alert(section + ' configuration has been updated successfully!');
+            // Redirect to map like real router often does
+            if (section === 'Wireless') {
+                const mapBtn = document.querySelectorAll('.menu-item')[0]; // First item is Map
+                navigate('map', mapBtn); 
+            }
+        }, 500);
+    }
+
+    function toggleQoS(isOn) {
+        if(isOn) alert("QoS Enabled");
+        else alert("QoS Disabled");
+    }
+</script>
+
+</body>
+</html>
